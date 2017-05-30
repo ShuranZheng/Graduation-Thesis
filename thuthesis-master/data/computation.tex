@@ -1,0 +1,15 @@
+\chapter{算法实现}
+注意到在上一章介绍的逐步迭代算法中，函数$LowAll(S, \varepsilon, \delta)=$
+\begin{align}
+   \tag{lowall}    \min_{\tau} \quad & \sum_{i=1}^n \tau_i\\
+        s.t.\quad & \sum_{i=1}^n \frac{(x_i -y_i)^2}{\tau_i} \le \frac{\varepsilon^2}{2 \ln(2/\delta)}, \forall x, y \in S\\
+         &\tau_i\ge 0, \forall i.
+\end{align}
+中的目标函数和限制条件都是凸函数，所以该函数可以用凸规划算法进行求解，如次梯度法、内点法、椭球法等\cite{}。但是注意到该函数限制条件个数是指数级别的，直接套用凸规划算法会非常低效。在这一章中，我们给出一个基于二次规划算法的实现方法。
+
+考虑使用椭球法来求解$LowAll(S, \varepsilon, \delta)$，我们只需考虑如何实现分离函数~(\ref{separation})，即
+\begin{definition}
+$LowAll(S, \varepsilon, \delta)$的分离函数$Separation(\tau)$返回$x,y\in S$若$\sum_{i=1}^n \frac{(x_i -y_i)^2}{\tau_i} > \frac{\varepsilon^2}{2 \ln(2/\delta)}$; 返回"feasible"若不存在$x,y\in S$使得$\sum_{i=1}^n \frac{(x_i -y_i)^2}{\tau_i} > \frac{\varepsilon^2}{2 \ln(2/\delta)}$。
+\end{definition}
+
+

@@ -1,0 +1,32 @@
+\chapter{背景知识}
+\section{组合纯探索问题}
+\begin{definition}[General Sampling问题]
+假设有$n$个均值分别为$\mu_1, \dots, \mu_n$的单位方差高斯分布$\mathcal{D}_1, \dots, \mathcal{D}_n$，均值$\mu_1,\dots,\mu_n$在一开始是未知的。在每个时间$t$，我们可以选择一个分布$\mathcal{D}_i$，并获取它的一个样例。令$O_1,\dots, O_k$为$\mathbb{R}^n$上$k$个不相交的集合，我们想要找到一个算法，可以以$1-\delta$的概率找到$\mu = (\mu_1, \mu_2,\dots, \mu_n)$所在的集合$O_j$, $j$是$1$到$k$之间的某一个数，且该算法使用的样例总个数尽量的少。
+\end{definition}
+
+\section{Change of Distribution定理}
+
+令算法$\mathcal{A}$为General Sampling问题的一个$\delta$-正确算法，定义$\Pr_{\mathcal{A}, \mathcal{I}}[\mathcal{E}]$为当算法$\mathcal{A}$的输入为$\mathcal{I}$时发生事件$\mathcal{E}$的概率，定义$\mathbb{E}_{\mathcal{A}, \mathcal{I}}[X]$为当算法$\mathcal{A}$的输入为$\mathcal{I}$时，随机变量$X$的期望值。
+\begin{theorem}\label{ChangeDistr}
+令算法$\mathcal{A}$为General Sampling问题的一个$\delta$-正确算法，令$\mathcal{I}_\mu$为$n$个分布的均值为$\mu_1,\dots, \mu_n$的一个General Sampling问题，令$\tau_i$为表示算法$\mathcal{A}$测量$\mu_i$的次数的随机变量，那么对于事件$\mathcal{E}$, 有
+\[
+\sum_{i=1}^n \mathbb{E}_{\mathcal{A}, \mathcal{I}_\mu}[\tau_i]\cdot (\frac{1}{2}(\mu_i - \mu'_i)^2) \ge d\left(\Pr_{\mathcal{A}, \mathcal{I}_\mu}[\mathcal{E}], \Pr_{\mathcal{A}, \mathcal{I}_{\mu'}}[\mathcal{E}]\right),
+\]
+其中，
+\[
+d(x,y) = x \ln (x/y)+ (1-x)\ln\left((1-x)/(1-y)\right).
+\]
+\end{theorem}
+\section{椭球法}
+在这一节中，我们介绍经典的解决凸规划问题的椭球法，考虑一个凸规划问题
+\begin{align}
+  \min & \ f(x) \tag{convex}\\
+  s.t. & \ g_i(x) \le 0,  \forall 1\le i\le m. \notag
+\end{align}
+定义一个凸规划问题的分离函数(separation oracle)为
+\begin{definition}\label{separation}
+一个凸规划问题的分离函数$Separation(x)$返回$i$若$g_i(x)>0$; 返回"feasible"若不存在$i$使得$g_i(x)>0$.
+\end{definition}
+对于分离函数能在多项式时间内求解的凸规划问题，我们可以用椭球法求出最优解，
+
+\tbd{give the description of ellipsoid method...}

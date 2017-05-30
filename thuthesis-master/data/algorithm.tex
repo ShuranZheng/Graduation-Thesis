@@ -1,0 +1,124 @@
+
+\chapter{算法分析}
+\label{cha:algo}
+在这章中，我们给出一个可以与下界比较且较优的算法，并对正确性和采样复杂度进行分析。
+\section{逐步排除算法}
+  再给出算法之前，我们先定义一个函数$LowAll(S, \varepsilon, \delta)$，这里$S$是一个$n$维空间中的点集，$\varepsilon$和$\delta$是两个常数，这个函数的返回值是一个长度为$n$的向量，表示了我们至少需要测量每个$c_i$多少次, 才能以至少$1-\delta$的概率、$\varepsilon$的精度，估计$S$中任意一对点之间的目标函数值的差. 定义函数$LowAll(S, \varepsilon, \delta)$为：
+        \begin{align*}
+        \min_{\tau} \quad & \sum_{i=1}^n \tau_i\\
+        s.t.\quad & \sum_{i=1}^n \frac{(x_i -y_i)^2}{\tau_i} \le \frac{\varepsilon^2}{2 \ln(2/\delta)}, \forall x, y \in S\\
+         &\tau_i\ge 0, \forall i.
+        \end{align*}
+我们的逐步排除算法在一开始将所有可能的最优解（即可行域的所有顶点）纳入考虑范围，每一次循环中算法都会根据$LowAll(S, \varepsilon, \delta)$的值对每个$c_i$进行测量，再根据测量结果删除掉与最优解的差大于某一个值的点，每一次循环中算法都会将精度$\varepsilon$减半，从而能够排除掉更多的点。当只剩下一个未被排除的点时，算法结束。
+	\begin{algorithm}[H]                      % enter the algorithm environment
+                \caption{逐步排除算法}
+                \label{Algo1}
+                \begin{algorithmic}[1]
+                	\REQUIRE 线性规划问题$\mathcal{I} = \max_{Ax\le b} c^T x$.
+                    \STATE $S^1\gets$所有基本可行解的集合，或者说可行域$\{x: Ax\le b\}$所有顶点的集合
+                    \STATE $r\gets 1$
+                    \STATE $\lambda\gets 10$
+                    \WHILE{$|S^r|>1$}
+                        \STATE $\varepsilon^r \gets 2^{-r}$, $\delta^r \gets \delta/(10 r^2 |S^1|^2)$
+                        \STATE $(m^r_1, \dots, m^r_n) \gets LowAll(S^r, \varepsilon^r/\lambda, \delta^r)$
+                        \STATE 对$c_i$进行$m^r_i$次测量, 令$\hat{c}^r_i$为这$m^r_i$次测量的均值
+                        \STATE 令$x^r$为当目标函数是$\hat{c}^r$时，集合$S^r$中的最优值，即
+                        $x^r = \arg \max_{x\in S^r} x^T \hat{c}^r$.
+                        \STATE 去除$S^r$中我们认为在目标函数为$\hat{c}^r$时，比$x^r$要差至少$\varepsilon^r/2+2\varepsilon^r/\lambda$的点，即$S^{r+1} \gets \{ x\in S^r: x^T \hat{c}^r \ge (x^r)^T \hat{c}^r-\varepsilon^r/2-2\varepsilon^r/\lambda\}$
+                        \STATE $r \gets r+1$
+                    \ENDWHILE
+                    \STATE 输出$S^r$中仅剩的一个点。
+                \end{algorithmic}
+                \end{algorithm}
+
+    \begin{theorem}
+    令$\mathcal{I}$为一个目标函数未知的线性规划问题$\max_{\{x:Ax\le b\}} c^T x$. 有至少$1-\delta$的概率, 逐步排除算法会输出正确的最优解, 且使用的测量次数为
+     \[
+        O\left( Low(\mathcal{I}) \ln \Delta^{-1} ( n + \ln \delta^{-1} + \ln \ln \Delta^{-1})\right),
+     \]
+     其中$n$是线性规划变量的个数, $\Delta$是目标函数为$c$时，最优的基本可行解与次优的基本可行解之间的差值，即
+     \[
+     \Delta = \max_{x\in S^1} c^T x - \max_{x\in S^1 - x^*} c^T x.
+     \]
+    \end{theorem}
+	
+\section{算法正确性}
+ 在这一节中，我们证明该算法是$\delta$-正确算法。在证明中我们会用到下面这个引理，
+    \begin{lemma}\label{lem1}
+ 考虑目标函数$c = (c_1, \dots, c_n)$, 假设我们对$c_i$进行$\tau_i$次测量，每一次测量的误差服从标准高斯分布，令$X_i$为这$\tau_i$次测量的平均值。那么对任意$n$维向量$p$, 有 
+    \[
+    \Pr\left[ |p^T X - p^T c|\ge \varepsilon\right] \le 2 \exp\{-\frac{\varepsilon^2}{2 \sum p_i^2/\tau_i}\}
+    \]
+    \end{lemma}
+    \begin{proof}
+    由定义可知, $p^T X - p^T c$服从均值为$0$方差为$\sum_i p_i^2/\tau_i$的高斯分布，由高斯分布的tail bound即可得到上述不等式. 
+    \end{proof}
+定义事件$\mathcal{E}$为下述条件成立的事件$$|(x-y)^T (\hat{c}^r - c))|\le \varepsilon^r /\lambda,\ \forall r, \forall x,y \in S^r.$$ 
+根据引理~\ref{lem1}和union bound, $\Pr[\mathcal{E}]\ge 1-\delta$. \tbd{prove this?} 那么我们只需证明以下引理，
+\begin{lemma}\label{correct}
+在事件$\mathcal{E}$成立的时候，最优解$x^* = \max_{Ax\le b} c^T x$不会被算法删除。
+\end{lemma}
+\begin{proof}
+假设$x^*$在第$r$个循环中被删除，即$x^* \in S^r$， $x^* \notin S^{r+1}$，那么我们有
+\[
+\langle \hat{c}^r, x^*\rangle < \langle \hat{c}^r, x^r\rangle-\varepsilon^r/2-2\varepsilon^r/\lambda.
+\]
+即
+\[
+\langle \hat{c}^r, x^* - x^r\rangle < -\varepsilon^r/2-2\varepsilon^r/\lambda.
+\]
+而由$x^*$的定义知
+\[
+\langle c, x^* - x^r\rangle > 0.
+\]
+结合两个不等式，我们可以得到
+\[
+\langle c - \hat{c}^r, x^* - x^r\rangle > \varepsilon^r/2 + 2\varepsilon^r/\lambda > \varepsilon^r /\lambda,
+\]
+由于$x^*$和$x^r$都是$S^r$中元素，这与$\mathcal{E}$成立矛盾。故当$\mathcal{E}$成立，最优解$x^*$不会被算法删除。
+\end{proof}
+\section{采样复杂度分析}
+
+我们再对算法的采样复杂度进行分析。与上一节中一样，定义事件$\mathcal{E}$为下述条件成立的事件$$|(x-y)^T (\hat{c}^r - c))|\le \varepsilon^r /\lambda,\ \forall r, \forall x,y \in S^r.$$ 
+根据引理~\ref{lem1}和union bound, $\Pr[\mathcal{E}]\ge 1-\delta$。
+
+我们首先给出算法循环次数的上界，
+\begin{lemma}\label{itrnum}
+当$\mathcal{E}$成立时，算法循环次数不会超过$\lfloor \log(\Delta^{-1})\rfloor + 1$，其中$\Delta$是当目标函数为$c$时，最优的基本可行解与次优的基本可行解之间的差值，即
+     \[
+     \Delta = \max_{x\in S^1} c^T x - \max_{x\in S^1 - x^*} c^T x.
+     \]
+\end{lemma}
+\begin{proof}
+我们只需证明在第$r$次循环结束后，$S^{r+1}$中所有的元素$s$都满足以下条件，
+\[
+\langle c, x^* - s\rangle < \varepsilon^r, \ \forall s\in S^{r+1}.
+\]
+假设在进入第$r$次循环时，存在$s\in S^r$使得
+\[
+\langle c, x^* - s\rangle > \varepsilon^r,
+\]
+那么由于$\mathcal{E}$成立，且我们选择$\lambda=10$，
+\[
+\langle c^r, x^* - s\rangle > \langle c, x^* - s\rangle - \varepsilon^r/\lambda > (1-1/\lambda)\varepsilon^r  >\varepsilon^r/2 + 2\varepsilon^r/\lambda,
+\]
+又因为引理\ref{correct}，$x^*$一定存在于$S^r$中。故$s$会在第$r$个循环中被删除。
+\end{proof}
+下面我们给出算法在第$r$次循环中使用的测量次数的上界。令$n$维向量$\tau$为定理\ref{inslow}中定义的$Low(\mathcal{I})$的返回值. 考虑第$r$次循环, 定义$$\alpha = 32 \lambda^2 \ln(2/\delta^r).$$ 我们证明$m = \alpha \tau^*$满足$LowAll(S^r, \varepsilon^r, \delta^r)$所有的约束条件. 对于任意的$x,y\in S^r$, 我们有 
+\begin{align*}
+\sum \frac{(x_i-y_i)^2}{m_i} &= \frac{1}{\alpha} \sum \frac{(x_i-y_i)^2}{\tau_i^*}\\
+& = \frac{1}{\alpha} \sum \frac{(x_i-x^*_i + x^*_i - y_i)^2}{\tau_i^*}\\
+& \le \frac{1}{\alpha} \sum \frac{2(x_i-x^*_i)^2 + 2(x^*_i - y_i)^2}{\tau_i^*}\\
+& \le \frac{2}{\alpha} \left((c^T(x^*-x))^2 + (c^T(x^* - y))^2\right)\\
+& \le \frac{4}{\alpha} (\varepsilon^{r-1})^2 = \frac{(\varepsilon^r)^2}{2\lambda^2 \ln(2/\delta^r)}.
+\end{align*}
+在第四行中，我们用到了$Low$函数\ref{LowGeneral}的定义，在第五行中我们用到了引理\ref{itrnum}证明中的结论。
+
+所以在第$r$次循环中，我们使用的测量次数不会超过
+\[
+\sum_i m_i = \alpha \sum_i \tau_i^* = O(Low(\mathcal{I})(\ln r + \ln |S^r| + \ln \delta^{-1}).
+\]
+结合引理\ref{itrnum}，循环次数不会超过$\lfloor \log(\Delta^{-1})\rfloor + 1$，故算法使用的总测量数不会超过
+\[
+O\left( Low(\mathcal{I}) \ln \Delta^{-1} ( n + \ln \delta^{-1} + \ln \ln \Delta^{-1})\right).
+\]

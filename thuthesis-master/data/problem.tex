@@ -1,0 +1,40 @@
+\chapter{问题描述}
+\section{目标函数未知的线性规划问题}
+假设我们手上有一个线性规划问题，
+\begin{align*}
+\max &\ \ c^T x, \\
+\textrm{ s.t. }& \ \ Ax \le b.
+\end{align*}
+我们想要找到这个问题的最优解，但是不知道这个问题里的目标函数，即向量$c$。假设我们可以通过一些方法去测量向量$c$里的每一个参数$c_i$，但是测量值$\tilde{c_i}$可能会有随机误差，假设这个随机误差服从均值为$0$，方差为$\sigma_i^2$的正态分布，即测量值$\tilde{c_i}$服从均值为$c_i$，方差为$\sigma^2$的正态分布。我们的目标是找到一个算法，能够保证有很高的概率可以找到正确的最优值，且使用的测量次数尽量少。
+
+在这片论文中，我们假设对所有的$i$都有$\sigma_i=1$。在本文介绍的所有结论中，方差$\sigma_i\neq 1$的情形都可以由$\sigma_i=1$的情形通过简单推导得到；或者也可以把多次测量值的平均值当作一次测量，这样就可以直接使用本文中的结论。
+
+下面我们举几个具体的例子。
+\begin{example}[最短路问题]
+假设我们想要求在图$E=(U,V)$上节点$s$到节点$t$的最短路，我们不知道每条边的边权，但可以每次选一条边去测量。这个问题就可以被描述成如下目标函数未知的线性规划问题
+\begin{align*}
+\max &\ \ -\sum_{(u,v)\in E} w_{uv} x_{uv},\\
+\textrm{ s.t. }& \ \ \sum_v x_{uv} - \sum_v x_{vu} = 0, \ \forall u,\\
+& \ \ x_{uv}\ge 0, \forall u,v.
+\end{align*}
+其中$E$为边集，$w_{uv}$为边权。
+\end{example}
+
+\begin{example}[最大流问题]
+假设我们想求在图$E=(U,V)$上从$s$到$t$的最大流，但是我们不知道每条边的流量上限，但可以每次选一条边去测量。这个问题就可以被描述成如下目标函数未知的线性规划问题
+\begin{align*}
+\max &\ \ -\sum_{(u,v)\in E} c_{uv}x_{uv}, \\
+\textrm{ s.t. }& \ \  y_v + y_{sv} \ge 1, \ \ \forall v: (s,v)\in E,\\
+& \ \ y_v -y_u +y_{uv} \ge 0, \ \ \forall(u,v)\in E, u\neq s, v\neq t,\\
+& \ \ -y_u + y_{ut}\ge 0, \ \ \forall u: (u,t)\in E.
+\end{align*}
+其中$E$为边集，$c_{uv}$为边的流量上限。
+\end{example}
+
+\section{$\delta$-正确算法}
+由于随机误差的存在，我们只能期望以高概率找到正确的线性规划最优解。
+\begin{definition}[$\delta$-正确算法]
+一个算法$\mathcal{A}$是$\delta$-正确算法，如果对于任意目标函数未知的线性规划问题，算法$\mathcal{A}$输出正确最优解$x^* = \max_{Ax\le b} c^T x$的概率至少为$1-\delta$.
+\end{definition}
+
+\tbd{give an example of $\delta$-correct algorithm?}

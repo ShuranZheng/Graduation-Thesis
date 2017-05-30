@@ -1,0 +1,119 @@
+\chapter{采样复杂度下界}
+\label{cha:lower}
+在这章中，我们对问题的下界进行分析。
+\section{基于单个实例的下界}
+我们首先给出一个基于单个实例的采样复杂度下界。
+ \begin{theorem}\label{inslow}
+        令$\mathcal{I}$为一个目标函数未知的线性规划问题$\max_{\{x:Ax\le b\}} c^T x$. 任何 $\delta$-正确算法使用的测量次数的期望值都至少为$\Omega(Low(\mathcal{I}) \ln \delta^{-1})$，其中$Low(\mathcal{I})$等于
+		\begin{align*}
+         \min_\tau \quad & \sum_{i=1}^n \tau_i\\
+        s.t.\quad & \sum_{i=1}^n \frac{(x_i^{(k)} -x_i^*)^2}{\tau_i} \le \left( c^T (x^* - x^{(k)}) \right)^2, \forall k\\
+         &\tau_i\ge 0, \forall i
+        \end{align*}
+$x^*$是正确的最优解 $\arg \max_{\{x:Ax\le b\}} c^T x$, $x^{(1)},\dots, x^{(k)}$是所有的基本可行解，即可行域构成的凸包$\{x:Ax\le b\}$上的所有的顶点.
+\end{theorem}
+\begin{proof}
+由于我们的问题是\cite{WJMZBMR}中定义的General Sampling问题的一个特例, \cite{WJMZBMR}中的instance lower bound对于我们的问题也是成立的. \cite{WJMZBMR}中$Low(\mathcal{I})$的定义如下,
+ \begin{align}
+        \label{LowGeneral} \min_\tau \quad & \sum_{i=1}^n \tau_i, \\
+        s.t.\quad & \sum_{i=1}^n (\nu_i-\mu_i)^2 \tau_i \ge 1, \forall \nu \in Alt(O), \notag\\
+         &\tau_i\ge 0, \forall i, \notag
+ \end{align}
+ 其中$\mu_i$是General Sampling问题中每一个臂的均值, 在我们的问题中等同于目标函数中的未知数$c_i$. 在我们的问题中，集合$O$等同于所有满足下述条件的$n$维向量$c'$的集合：当限制条件为$Ax\le b$时，目标函数$c'$和$c$有着相同的最优解$x^*$。而集合$Alt(O)$的定义是$O$的补集, 也就是当限制条件为$Ax\le b$时，与$c$有着不同的最优解的向量$c'$的集合。 
+ 
+由上面的定义可知，一个向量$c'$属于$O$，当且仅当在目标函数为$c'$时，可行域凸包上的顶点都没有$x^*$优，即
+ \begin{align} 
+\label{defO} O = \{ d| d^T (x^{(k)} - x^*) \le 0, \forall k\} 
+ \end{align}
+ 故在我们的问题中$Low(\mathcal{I})$就等于
+ \begin{align} 
+   \tag{program1}      \min_\tau \quad & \sum_{i=1}^n \tau_i, \\
+        s.t.\quad & \sum_{i=1}^n (d_i-c_i)^2 \tau_i \ge 1, \forall d \notin O, \notag\\
+         &\tau_i\ge 0, \forall i, \notag
+ \end{align}
+ 将式~(\ref{defO})的定义代入~(\ref{program1})中， 我们可以得到
+ \begin{align}
+     \tag{program2}    \min_\tau \quad & \sum_{i=1}^n \tau_i,\\
+        s.t.\quad & \{ d | \sum_{i=1}^n (d_i-c_i)^2 \tau_i \le 1\} \subseteq \{ d| d^T (x^{(k)} - x^*) \le 0, \forall k\} \notag \\
+         &\tau_i\ge 0, \forall i. \notag
+ \end{align}
+ 注意到左侧集合$\{ d | \sum_{i=1}^n (d_i-c_i)^2 \tau_i \le 1\}$是右侧集合$\{ d| d^T (x^{(k)} - x^*) \le 0, \forall k\}$的子集当且仅当对于每一个$k$, 左侧集合中使得$d^T (x^{(k)} - x^*)$最大的$d$满足$d^T (x^{(k)} - x^*) \le 0$。
+ 
+所以我们可以进一步将~(\ref{program2})表示为：
+\begin{align}
+\tag{program3} \min_\tau \quad & \sum_{i=1}^n \tau_i,\\
+        s.t.\quad & \max_d \left\{ d^T (x^{(k)} - x^*) {\Large|} \sum_{i=1}^n (d_i-c_i)^2 \tau_i \le 1\right\}  \le 0, \forall k \notag \\
+         &\tau_i\ge 0, \forall i. \notag
+ \end{align}
+通过一些简单的计算，可以求得上式左侧的最大值为$\max_d d^T (x^{(k)} - x^*) = (x^{(k)} - x^*)^T c + \sqrt{\sum_i (x^{(k)}_i - x^*_i)^2/\tau_i}$. 
+所以~(\ref{program3})可以表示为
+\begin{align*}
+  \min_\tau \quad & \sum_{i=1}^n \tau_i,\\
+        s.t.\quad & (x^{(k)} - x^*)^T c + \sqrt{\sum_i (x^{(k)}_i - x^*_i)^2/\tau_i}  \le 0, \forall k\\
+         &\tau_i\ge 0, \forall i. 
+ \end{align*}
+
+稍加整理，我们就可以得到定理中的结果
+\begin{align*}
+         \min_\tau \quad & \sum_{i=1}^n \tau_i\\
+        s.t.\quad & \sum_{i=1}^n \frac{(x_i^{(k)} -x_i^*)^2}{\tau_i} \le \left( c^T (x^* - x^{(k)}) \right)^2, \forall k\\
+         &\tau_i\ge 0, \forall i
+\end{align*}
+\end{proof}
+
+\section{基于最坏情形的下界}
+
+
+    \begin{theorem}
+        令$n$为一个正整数，$0<\delta<0.1$, 对于任何$\delta$-正确算法$\mathcal{A}$, 存在无限多个含$n$个变量的线性规划问题, $\mathcal{I}_1, \mathcal{I}_2, \dots$,使得$\mathcal{A}$在$\mathcal{I}_k$上使用的测量次数的期望为
+        \[
+        \Omega\left(Low(\mathcal{I}_k)(n+\ln \delta^{-1}) \right)
+        \]
+        且$Low(\mathcal{I}_k)$的极限趋于无穷大。
+    \end{theorem}
+ 在证明中，我们利用下面引理构造出一个可行域$Ax\le b$，
+ \begin{lemma}\label{mSets}
+ 令$n$为一个正整数，则存在$m=2^{cn}$个集合$S_1,\dots,S_m \subseteq [n]$使得$c$为一个常数，且对于所有的$i$，都有$\vert S_i \vert = l = \Omega(n)$, 对于所有$i\neq j$，都有$\vert S_i \cap S_j\vert \le l/2$.
+ \end{lemma}
+  \begin{proof}
+  令每个$S_i$都为一个随机等概率选取的$[n]$的长度为$l$的子集，那么对于任意$i\neq j$，我们有
+  \[
+  \Pr[\vert S_i \cap S_j \vert > l/2]\le 2^{-\Omega(n)}.
+  \]
+  所以我们可以选取足够小的$c$使得
+  \[
+  \Pr[\exists i\neq j, \vert S_i \cap S_j \vert > l/2]\le m^2 2^{-\Omega(n)}< 1.
+  \]
+  \end{proof}
+  
+  下面我们给出定理中$\mathcal{I}_1, \mathcal{I}_2, \dots$的构造方法。
+  我们先给出可行域$Ax\le b$的定义。给定变量个数$n$，令$S_1,\dots,S_m \subseteq [n]$为满足上述引理中条件的集合。对于一个集合$S\subseteq [n]$, 定义$n$维空间中的点$P_S$的第$j$维为$1$若$j\in S$， 否则为$0$。我们令可行域$Ax\le b$为$P_{S_1},\dots, P_{S_m}$和原点构成的凸包。
+  
+  我们再给出目标函数的构造。给定$\Delta \in (0, 0,1)$, 和集合$C\subseteq [n]$, 我们令线性规划问题$\mathcal{I}_{\Delta, C}$的目标函数$c^T x$满足：$c_i = \Delta$若$i\in C$，否则$c_i = - \Delta$。
+  
+  由上述定义可知$\mathcal{I}_{\Delta, S_i}$的最优解即为$P_{S_i}$。下面我们固定一个$\Delta\in (0,0,1)$和一个$\delta$-正确算法$\mathcal{A}$，并证明必定存在$S_k$，$1\le k \le m$使得$\mathcal{A}$在$\mathcal{I}_{\Delta, S_k}$上使用的测量次数的期望为$\Omega\left(Low(\mathcal{I}_{\Delta, S_k})(n+\ln \delta^{-1}) \right).$
+        
+ 定义$\Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_i}) = P_{S_j}]$为当线性规划问题是$\mathcal{I}_{\Delta, S_i}$时，算法$\mathcal{A}$输出的最优解为$P_{S_j}$的概率。那么应当有
+ \[
+ \Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_i}) = P_{S_i}] \ge 1-\delta,
+ \]
+ 和
+ \[
+ \sum_{j: j\neq i} \Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_i}) = P_{S_j}] \le \delta.
+ \]
+ 那么一定存在$S_k\neq S_i$，使得
+ \[
+	\Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_i}) = P_{S_k}] \le 2\delta/m.
+ \]
+ 结合$\Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_k}) = P_{S_k}] \ge 1 - \delta> 0.9$ 和 定理\ref{ChangeDistr}， 令$T$为算法$\mathcal{A}$在输入为$\mathcal{I}_{\Delta,S_k}$时，使用的测量次数，我们有
+ \begin{align*}
+\mathbb{E}[T]\cdot (2 \Delta^2) &\ge d\left(\Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_k}) = P_{S_k}],\Pr[\mathcal{A}(\mathcal{I}_{\Delta, S_i}) = P_{S_k}]\right) \\
+&\ge \Omega(\ln(m/\delta)\\
+& = \Omega(n + \ln(1/\delta)),
+\end{align*}
+这里我们用到了$d(1-\delta,\delta)$的性质: 对于$0<\delta<0.1$, 有$d(1-\delta,\delta)\ge 0.4 \ln(1/\delta)$。所以我们有$E[T]\ge \Omega\left(\Delta^{-2}(n + \ln(1/\delta))\right)$.
+
+同时由引理\ref{mSets}中$S_1,\dots, S_m$的性质，我们可以证明令所有的$\tau_i = \frac{2}{l\Delta^2}$是$Low(\mathcal{I}_{\Delta, S_k})$中的一个可行解，故有$Low(\mathcal{I}_{\Delta, S_k})=\Theta(\frac{2n}{l\Delta^2}) = \Theta(\Delta^{-2})$. 
+所以$\mathcal{A}$在$\mathcal{I}_{\Delta, S_k}$上使用的测量次数的期望为$\Omega\left(Low(\mathcal{I}_{\Delta, S_k})(n+\ln (\delta^{-1})) \right).$
+
+取$\Delta = 1, 1/2, 1/3, \dots$，即可得定理中的结论。
